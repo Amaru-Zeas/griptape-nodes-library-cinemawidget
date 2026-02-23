@@ -5,8 +5,8 @@ try { _cd_base_url = new URL('.', import.meta.url).href; } catch(e) {}
 
 export default function CinematicDirectorWidget(container, props) {
   const { value, onChange, disabled } = props;
-  var V = 'v10.3';
-  var VISION_MAX = 1024, THUMB_SIZE = 300, VIS_Q = 0.7;
+  var V = 'v10.4-fullres';
+  var THUMB_SIZE = 300, VIS_Q = 0.7;
   var PRESET_HOVER_REARM_MS = 1200;
 
   function stillUrl(folder, filename) {
@@ -448,19 +448,49 @@ export default function CinematicDirectorWidget(container, props) {
   fileInput.addEventListener('change', function() {
     var file = fileInput.files && fileInput.files[0];
     if (!file) return;
+
+    var imageDataReady = false;
+    var thumbReady = false;
+    var nextImageData = '';
+    var nextThumb = '';
+
+    function finalizeIfReady() {
+      if (!imageDataReady || !thumbReady) return;
+      pendingImageData = nextImageData;
+      charThumb = nextThumb;
+      charName = file.name.replace(/\.[^.]+$/, '');
+      hasCharImage = true; charDirty = true;
+      updateCharCard(); emitChange();
+      fileInput.value = '';
+    }
+
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      var result = ev && ev.target ? ev.target.result : '';
+      nextImageData = (typeof result === 'string') ? result : '';
+      imageDataReady = !!nextImageData;
+      finalizeIfReady();
+    };
+    reader.onerror = function() {
+      imageDataReady = false;
+      fileInput.value = '';
+    };
+    reader.readAsDataURL(file);
+
     var blobUrl = URL.createObjectURL(file);
     var img = new window.Image();
     img.onload = function() {
-      pendingImageData = resizeToDataURL(img, VISION_MAX, VIS_Q);
-      charThumb = resizeToDataURL(img, THUMB_SIZE, 0.7);
-      charName = file.name.replace(/\.[^.]+$/, '');
-      hasCharImage = true; charDirty = true;
+      nextThumb = resizeToDataURL(img, THUMB_SIZE, VIS_Q);
+      thumbReady = true;
       URL.revokeObjectURL(blobUrl);
-      updateCharCard(); emitChange();
+      finalizeIfReady();
     };
-    img.onerror = function() { URL.revokeObjectURL(blobUrl); };
+    img.onerror = function() {
+      thumbReady = true;
+      URL.revokeObjectURL(blobUrl);
+      finalizeIfReady();
+    };
     img.src = blobUrl;
-    fileInput.value = '';
   });
 
   // ═══════════════════════════════════════════════════════════════════

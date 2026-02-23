@@ -274,19 +274,34 @@ class CinematicDirectorNode(ControlNode):
         data_url = data.get("char_image_data", "")
         if not data_url or not data_url.startswith("data:"):
             return None
-        header, b64 = data_url.split(",", 1)
+        try:
+            header, b64 = data_url.split(",", 1)
+        except ValueError:
+            return None
+
         img_bytes = base64.b64decode(b64)
+        mime = header.split(";", 1)[0].replace("data:", "").strip().lower()
         pil_img = Image.open(io.BytesIO(img_bytes))
-        if pil_img.mode == "RGBA":
-            pil_img = pil_img.convert("RGB")
+        width, height = pil_img.size
+
+        format_map = {
+            "image/jpeg": "jpeg",
+            "image/jpg": "jpeg",
+            "image/png": "png",
+            "image/webp": "webp",
+        }
+        fmt = format_map.get(mime)
+
+        # Keep original bytes when format is directly usable, avoiding extra recompression.
+        if fmt in {"jpeg", "png", "webp"}:
+            return ImageArtifact(value=img_bytes, width=width, height=height, format=fmt)
+
+        # Fallback for uncommon formats: convert once to PNG at original dimensions.
+        if pil_img.mode not in {"RGB", "RGBA", "L"}:
+            pil_img = pil_img.convert("RGBA")
         buf = io.BytesIO()
-        pil_img.save(buf, format="JPEG", quality=85)
-        return ImageArtifact(
-            value=buf.getvalue(),
-            width=pil_img.size[0],
-            height=pil_img.size[1],
-            format="jpeg",
-        )
+        pil_img.save(buf, format="PNG")
+        return ImageArtifact(value=buf.getvalue(), width=width, height=height, format="png")
 
     def _describe_image(self, img: ImageArtifact, model: str, api_key: str) -> str:
         logger.info(f"CinematicDirector: vision describe {img.width}x{img.height} with {model}")

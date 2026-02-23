@@ -45,3 +45,25 @@ Six columns, each scrollable with mouse wheel:
 
 - OpenAI API key (for prompt generation)
 - Griptape Nodes engine
+
+## Mandatory Widget Cache-Bust Procedure
+
+Use this every time any widget JS changes. This is required for GTN/Electron cache behavior.
+
+1. Bump the widget version label inside the widget file (for visual proof), for example:
+   - `var V = "cg-v1.6-entry-v4"`
+2. Create a new widget entrypoint filename (do not reuse old entrypoint):
+   - `CharacterGeneratorWidgetV4.js` -> next change uses `CharacterGeneratorWidgetV5.js`
+3. In the new entrypoint, import the base widget with a new hotfix query:
+   - `./CharacterGeneratorWidgetV1.js?hotfix=...`
+4. Update `griptape_nodes_library.json`:
+   - point widget `path` to the new entrypoint filename
+   - bump `metadata.library_version`
+5. In GTN:
+   - keep DevTools open
+   - Network tab -> enable `Disable cache`
+   - Reload library
+   - remove old node from canvas and add a fresh node instance
+6. Confirm version text in widget UI matches the expected new `var V` value.
+
+If the old UI still appears, repeat with another new entrypoint filename and hotfix token.

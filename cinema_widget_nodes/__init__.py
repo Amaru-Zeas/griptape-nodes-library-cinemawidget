@@ -1,1 +1,1 @@
-"""GTN Cinematic Director — Cinematic Director node and widget library."""
+"""GTN Cinematic Director — Cinematic Director and Character Generator nodes/widgets."""

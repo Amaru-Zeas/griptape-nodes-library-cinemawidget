@@ -4,7 +4,7 @@
     "metadata": {
         "author": "Griptape Community",
         "description": "Modular cinematic prompt generation — camera, character, environment, style, and combiner nodes with scroll-wheel widgets and built-in LLM agents.",
-        "library_version": "0.60.0",
+        "library_version": "1.0.15",
         "engine_version": "0.66.0",
         "tags": [
             "Griptape",
@@ -49,6 +49,16 @@
             "name": "CinematicDirectorWidget",
             "path": "CinematicDirectorWidgetV49.js",
             "description": "All-in-one mega widget: style, camera, character, and environment in one collapsible UI"
+        },
+        {
+            "name": "CharacterGeneratorWidget",
+            "path": "CharacterGeneratorWidgetV37.js",
+            "description": "Character generator widget with vertical 2:3 cards and mode-based prompting"
+        },
+        {
+            "name": "CharacterGeneratorWidgetCacheKiller",
+            "path": "CharacterGeneratorWidgetV36.js",
+            "description": "Character generator widget cache-killer binding"
         }
     ],
     "nodes": [
@@ -59,6 +69,15 @@
                 "category": "CinemaWidget",
                 "description": "All-in-one Cinematic Director — style, camera, character (with image), and environment in a single node. One LLM call produces the final combined prompt.",
                 "display_name": "Cinematic Director"
+            }
+        },
+        {
+            "class_name": "CharacterGeneratorNodeFreshV12",
+            "file_path": "character_generator_node.py",
+            "metadata": {
+                "category": "CinemaWidget",
+                "description": "Character generator with style/body-part controls and optional reference-image modes.",
+                "display_name": "Character Generator Fresh v12"
             }
         }
     ]
